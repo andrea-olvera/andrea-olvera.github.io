@@ -4,92 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Andrea Olvera — Finance × Technology × Curiosity</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; background: #070d1a; overflow-x: hidden; }
-
-  /* NAV */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 1.2rem 4rem;
-    background: rgba(7,13,26,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 0.5px solid rgba(79,195,247,0.15);
-  }
-  .nav-logo { font-family: 'Space Mono', monospace; font-size: 14px; color: #4fc3f7; letter-spacing: 0.1em; text-decoration: none; }
-  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
-  .nav-links a { font-family: 'Space Mono', monospace; font-size: 12px; color: #6b8caa; text-decoration: none; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s; cursor: pointer; }
-  .nav-links a:hover { color: #4fc3f7; }
-
-  /* IFRAMES */
   .section-frame {
-    width: 100%;
-    border: none;
-    display: block;
-    overflow: hidden;
-  }
-
-  @media (max-width: 768px) {
-    nav { padding: 1rem 1.5rem; }
-    .nav-links { gap: 1rem; }
-    .nav-links a { font-size: 10px; }
+    width: 100%; border: none; display: block; overflow: hidden;
   }
 </style>
 </head>
 <body>
-
-<nav>
-  <a href="#" onclick="scrollToFrame('home-frame')" class="nav-logo">AO</a>
-  <ul class="nav-links">
-    <li><a onclick="scrollToFrame('home-frame')">Home</a></li>
-    <li><a onclick="scrollToFrame('about-frame')">About</a></li>
-    <li><a onclick="scrollToFrame('projects-frame')">Projects</a></li>
-    <li><a onclick="scrollToFrame('experience-frame')">Experience</a></li>
-    <li><a onclick="scrollToFrame('awards-frame')">Awards</a></li>
-    <li><a onclick="scrollToFrame('contact-frame')">Contact</a></li>
-  </ul>
-</nav>
-
-<div style="padding-top: 60px;">
-  <iframe id="home-frame"      class="section-frame" src="home.html"       scrolling="no"></iframe>
-  <iframe id="about-frame"     class="section-frame" src="about.html"      scrolling="no"></iframe>
-  <iframe id="projects-frame"  class="section-frame" src="projects.html"   scrolling="no"></iframe>
+  <iframe id="home-frame"       class="section-frame" src="home.html"       scrolling="no"></iframe>
+  <iframe id="about-frame"      class="section-frame" src="about.html"      scrolling="no"></iframe>
+  <iframe id="projects-frame"   class="section-frame" src="projects.html"   scrolling="no"></iframe>
   <iframe id="experience-frame" class="section-frame" src="experience.html" scrolling="no"></iframe>
-  <iframe id="awards-frame"    class="section-frame" src="awards.html"     scrolling="no"></iframe>
-  <iframe id="contact-frame"   class="section-frame" src="contact.html"    scrolling="no"></iframe>
-</div>
+  <iframe id="awards-frame"     class="section-frame" src="awards.html"     scrolling="no"></iframe>
+  <iframe id="contact-frame"    class="section-frame" src="contact.html"    scrolling="no"></iframe>
 
 <script>
-// Auto-resize each iframe to fit its content
 function resizeFrame(frame) {
   try {
     const doc = frame.contentDocument || frame.contentWindow.document;
     frame.style.height = doc.documentElement.scrollHeight + 'px';
   } catch(e) {}
 }
-
 document.querySelectorAll('.section-frame').forEach(frame => {
   frame.addEventListener('load', () => {
     resizeFrame(frame);
-    // Re-check after images/fonts load
     setTimeout(() => resizeFrame(frame), 500);
     setTimeout(() => resizeFrame(frame), 1500);
+    setTimeout(() => resizeFrame(frame), 3000);
   });
 });
-
-// Smooth scroll to frame
-function scrollToFrame(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    const top = el.getBoundingClientRect().top + window.scrollY - 60;
-    window.scrollTo({ top, behavior: 'smooth' });
-  }
-}
-
-// Re-resize on window resize
 window.addEventListener('resize', () => {
   document.querySelectorAll('.section-frame').forEach(f => resizeFrame(f));
 });

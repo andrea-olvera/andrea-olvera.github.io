@@ -31,6 +31,7 @@
   .interest-card:hover{border-color:var(--accent);transform:translateY(-4px);}
   .card-img{width:100%;height:220px;object-fit:cover;display:block;}
   .card-map-wrap{width:100%;height:220px;background:var(--bg3);position:relative;overflow:hidden;}
+  #mapCanvas{position:absolute;top:0;left:0;}
   .card-body{padding:1.1rem 1.1rem 1.3rem;}
   .card-title{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;}
   .card-text{font-size:13px;color:var(--text2);line-height:1.65;}
@@ -69,39 +70,7 @@
     </div>
     <div class="interest-card">
       <div class="card-map-wrap">
-        <svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-  <rect width="300" height="220" fill="#0d1830"/>
-  <g stroke="rgba(79,195,247,0.06)" stroke-width="0.5">
-    <line x1="0" y1="24" x2="300" y2="24"/><line x1="0" y1="48" x2="300" y2="48"/>
-    <line x1="0" y1="72" x2="300" y2="72"/><line x1="0" y1="96" x2="300" y2="96"/>
-    <line x1="0" y1="120" x2="300" y2="120"/><line x1="0" y1="144" x2="300" y2="144"/>
-    <line x1="0" y1="168" x2="300" y2="168"/><line x1="0" y1="192" x2="300" y2="192"/>
-    <line x1="24" y1="0" x2="24" y2="220"/><line x1="48" y1="0" x2="48" y2="220"/>
-    <line x1="72" y1="0" x2="72" y2="220"/><line x1="96" y1="0" x2="96" y2="220"/>
-    <line x1="120" y1="0" x2="120" y2="220"/><line x1="144" y1="0" x2="144" y2="220"/>
-    <line x1="168" y1="0" x2="168" y2="220"/><line x1="192" y1="0" x2="192" y2="220"/>
-    <line x1="216" y1="0" x2="216" y2="220"/><line x1="240" y1="0" x2="240" y2="220"/>
-    <line x1="264" y1="0" x2="264" y2="220"/>
-  </g>
-  <polyline points="38,60 36,75 34,90 33,104 35,114 40,122 46,128 50,134 52,142 52,152 51,162"
-    fill="none" stroke="rgba(105,255,180,0.22)" stroke-width="1"/>
-  <polyline points="51,162 63,161 77,158 91,152 105,152 117,146 129,138 139,128"
-    fill="none" stroke="rgba(105,255,180,0.1)" stroke-width="0.8" stroke-dasharray="3,3"/>
-  <path d="M 51,158 C 55,135 100,108 148,86 C 185,68 215,54 248,40"
-    fill="none" stroke="rgba(105,255,180,0.85)" stroke-width="1.8" stroke-dasharray="4,3"/>
-  <circle cx="51" cy="164" r="4" fill="rgba(105,255,180,0.85)"/>
-  <circle cx="51" cy="154" r="4" fill="rgba(105,255,180,0.85)"/>
-  <circle cx="178" cy="78" r="4" fill="rgba(105,255,180,0.85)"/>
-  <circle cx="248" cy="40" r="8" fill="none" stroke="rgba(105,255,180,0.3)" stroke-width="1.5">
-    <animate attributeName="r" values="7;15;7" dur="2s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="248" cy="40" r="6" fill="rgba(105,255,180,1)"/>
-  <text x="59" y="173" font-family="Space Mono,monospace" font-size="8.5" fill="rgba(200,240,220,0.95)" font-weight="bold">Tijuana, Mexico</text>
-  <text x="59" y="150" font-family="Space Mono,monospace" font-size="8.5" fill="rgba(200,240,220,0.95)" font-weight="bold">San Diego, CA</text>
-  <text x="186" y="75" font-family="Space Mono,monospace" font-size="8.5" fill="rgba(200,240,220,0.95)" font-weight="bold">Telluride, CO</text>
-  <text x="210" y="36" font-family="Space Mono,monospace" font-size="8.5" fill="rgba(200,240,220,0.95)" font-weight="bold">Denver, CO</text>
-</svg>
+        <canvas id="mapCanvas"></canvas>
       </div>
       <div class="card-body">
         <div class="card-title">Where will I be next?</div>
@@ -111,6 +80,112 @@
   </div>
 </section>
 
+<script>
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+const wrap = canvas.parentElement;
+const MINT = '105,255,180';
 
+function setSize() {
+  canvas.width = wrap.offsetWidth || 300;
+  canvas.height = wrap.offsetHeight || 220;
+}
+setSize();
+window.addEventListener('resize', () => { setSize(); drawMap(); });
+
+const LON0=-122, LON1=-100, LAT0=42, LAT1=28;
+function toXY(lon,lat) {
+  return [(lon-LON0)/(LON1-LON0)*canvas.width,(lat-LAT0)/(LAT1-LAT0)*canvas.height];
+}
+
+const locs = [
+  { label:'Tijuana, Mexico', lon:-117.04, lat:32.52, lp:'bl' },
+  { label:'San Diego, CA',   lon:-117.16, lat:32.82, lp:'ar' },
+  { label:'Telluride, CO',   lon:-107.81, lat:37.94, lp:'ar' },
+  { label:'Denver, CO',      lon:-104.99, lat:39.74, lp:'ar' }
+];
+
+const coastPath = [
+  [-121.8,36.6],[-121.3,35.7],[-120.8,35.2],[-120.0,34.4],
+  [-118.8,34.0],[-118.3,33.7],[-117.5,33.4],[-117.1,32.5],
+  [-116.6,31.3],[-115.5,30.0],[-114.8,29.2],[-114.0,28.7]
+];
+const borderPath = [
+  [-117.1,32.5],[-114.7,32.7],[-111.0,31.3],
+  [-108.2,31.3],[-106.5,31.8],[-104.5,29.6],[-101.0,28.5]
+];
+
+let progress = 0, done = false;
+
+function drawMap() {
+  const W=canvas.width, H=canvas.height;
+  if(!W||!H) return;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d1830'; ctx.fillRect(0,0,W,H);
+
+  ctx.strokeStyle='rgba(79,195,247,0.05)'; ctx.lineWidth=0.5;
+  for(let i=0;i<W;i+=24){ ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke(); }
+  for(let i=0;i<H;i+=24){ ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke(); }
+
+  ctx.beginPath();
+  coastPath.forEach(([lon,lat],i)=>{ const [x,y]=toXY(lon,lat); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.strokeStyle=`rgba(${MINT},0.2)`; ctx.lineWidth=1; ctx.setLineDash([]); ctx.stroke();
+
+  ctx.beginPath();
+  borderPath.forEach(([lon,lat],i)=>{ const [x,y]=toXY(lon,lat); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.strokeStyle=`rgba(${MINT},0.08)`; ctx.lineWidth=0.8; ctx.setLineDash([3,3]); ctx.stroke();
+  ctx.setLineDash([]);
+
+  for(let i=0;i<locs.length-1;i++) {
+    const sS=i/(locs.length-1), sE=(i+1)/(locs.length-1);
+    const sp=Math.max(0,Math.min(1,(progress-sS)/(sE-sS)));
+    if(sp<=0) continue;
+    const [x1,y1]=toXY(locs[i].lon,locs[i].lat);
+    const [x2,y2]=toXY(locs[i+1].lon,locs[i+1].lat);
+    const cx=(x1+x2)/2, cy=Math.min(y1,y2)-12;
+    ctx.beginPath(); ctx.moveTo(x1,y1);
+    for(let s=1;s<=40*sp;s++) {
+      const t=s/40;
+      ctx.lineTo((1-t)*(1-t)*x1+2*(1-t)*t*cx+t*t*x2,(1-t)*(1-t)*y1+2*(1-t)*t*cy+t*t*y2);
+    }
+    ctx.strokeStyle=`rgba(${MINT},0.8)`; ctx.lineWidth=1.8; ctx.setLineDash([4,3]); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  locs.forEach((loc,i) => {
+    const dp=Math.max(0,Math.min(1,(progress*(locs.length-1))-i+1));
+    if(dp<=0 && !done) return;
+    const [x,y]=toXY(loc.lon,loc.lat);
+    const alpha=done?1:Math.min(1,dp*2);
+    const isLast=i===locs.length-1;
+
+    if(isLast) {
+      const pulse=(Date.now()%2000)/2000;
+      ctx.beginPath(); ctx.arc(x,y,10+pulse*10,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(${MINT},${0.4*(1-pulse)})`;
+      ctx.lineWidth=1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${MINT},1)`; ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${MINT},${alpha*0.85})`; ctx.fill();
+    }
+
+    ctx.font='bold 9px Space Mono,monospace';
+    ctx.fillStyle=`rgba(200,240,220,${alpha})`;
+    let lx=x+8, ly=y-6;
+    if(loc.lp==='bl') { lx=x-72; ly=y+16; }
+    if(i===1) { lx=x+8; ly=y-10; }
+    if(isLast) { ly=y-10; lx=x+8; }
+    ctx.fillText(loc.label,lx,ly);
+  });
+}
+
+function animate() {
+  if(progress<1) { progress+=0.007; drawMap(); requestAnimationFrame(animate); }
+  else { done=true; drawMap(); requestAnimationFrame(drawMap); }
+}
+setTimeout(()=>animate(),400);
+</script>
 </body>
 </html>
